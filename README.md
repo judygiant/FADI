@@ -33,12 +33,35 @@ These arguments should be specified when invoking the script, for example via a 
 module load gcc R  # Load R module
 R CMD BATCH --quiet --no-restore --no-save "--args 1000 $SLURM_ARRAY_TASK_ID 1" example_GMM.R example_GMM_${SLURM_ARRAY_TASK_ID}.out
 ```
-R scripts 1000g_estimation_layer_1.R and 1000g_estimation_layer_2.R contain the codes for applying FADI for estimating the principal eigenspace of the 1000 Genomes data. 1000g_estimation_layer_1.R implements Step 1 of FADI, with input parameters i-index for distributed data split, l-index for parallel sketching, and p-dimension of fast sketching. 1000g_estimation_layer_2.R implements step 2 of FADI, with input parameters l-index for parallel sketching, and p-dimension of fast sketching.
+### 1000 Genomes Application
 
-R script inference_1000g_SBM.R implements Step 1 and Step 2 of FADI for computing the top PCs of the undirected graph generated based on the 1000 Genomes data, with input parameter  l-index for parallel sketching. R script multiple_testing_1000g.Rmd performs multiple testing on inferring subject population of the 1000 Genomes data. The script multiple_testing_1000g.Rmd first implements Step 3 of FADI, by aggregating the parallel sketching results to output the FADI estimator of the top PCs. Then the script multiple_testing_1000g.Rmd performs the inferential procedure for membership testing using the FADI PC estimator, as detailed in Supplement D of the paper "Dimension Reduction for Large-Scale Federated Data: Statistical Rate and Asymptotic Inference".
+The following scripts apply FADI to the 1000 Genomes data to estimate the principal eigenspace across two layers:
+
+- `1000g_estimation_layer_1.R`: Implements **Step 1** of FADI.  
+  - Input arguments:  
+    - `i`: Index for distributed data splits  
+    - `l`: Index for parallel sketching  
+    - `p`: Sketching dimension  
+
+- `1000g_estimation_layer_2.R`: Implements **Step 2** of FADI.  
+  - Input arguments:  
+    - `l`: Index for parallel sketching  
+    - `p`: Sketching dimension  
+
+The following scripts further apply FADI to perform inferential analysis on the 1000 Genomes data:
+- `inference_1000g_SBM.R`: Implements **Steps 1 and 2** of FADI for computing the top principal components (PCs) of an undirected graph constructed from the 1000 Genomes data.  
+  - Argument:
+    - `l`: Index for parallel sketching  
+
+- `multiple_testing_1000g.Rmd`: Performs multiple testing for inferring subject populations based on the estimated PCs. This script first executes **Step 3** of FADI by aggregating sketching results to form the final FADI estimator, and then performs membership testing using the FADI PC estimators. The full inferential procedure is described in Supplement D of the paper  
+  *"Dimension Reduction for Large-Scale Federated Data: Statistical Rate and Asymptotic Inference."*
 
 ## Data
-The folder Data contains supplementary data for applying FADI to inferential analysis of the 1000 Genomes data. The file 1000g_sbm95.RData contains an undirected graph generated based on the 1000 Genomes data, used for the inferential application of FADI, and the file 1KG_TRACE_pca.txt contains the population information of the 1000 Genomes data subjects.
+The `Data` folder contains supplementary files used in the inferential analysis of the 1000 Genomes dataset:
+
+- `1000g_sbm95.RData`: An undirected graph constructed from the 1000 Genomes data, used for the inferential application of FADI.  
+- `1KG_TRACE_pca.txt`: Metadata containing population labels for the 1000 Genomes subjects.
+
 
 ## Workflow
 ![FADI_workflow](FADI_workflow.png)
