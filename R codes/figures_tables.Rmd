@@ -837,7 +837,7 @@ for (rt in c(0.2,0.6,0.9,1,1.2, 2,5,10)){
 
 
 
-##### tables for plotting Figure 5
+##### tables for plotting Figure S1
 
 err_rate_tab <- rbind(err_rate_tab_500,err_rate_tab_1000, err_rate_tab_2000)
 err_rate_tab <- data.frame(err_rate_tab)
@@ -857,7 +857,7 @@ tab_recov_prob1 <- rbind(tab_recov_prob1_500, tab_recov_prob1_1000, tab_recov_pr
 tab_recov_prob1 <- data.frame(tab_recov_prob1)
 tab_recov_prob1$X3<- as.factor(tab_recov_prob1$X3 )
 
-####### QQ plot in Figure 5
+####### QQ plot in Figure S1
 
 d=2000
 
@@ -1133,7 +1133,7 @@ runtime_pca_2000 <- mean(runtime_ls)
 
 ```
 ```{r}
-####### Plotting Figure 5
+####### Plotting Figure S1
 
 library(latex2exp)
 p01<-ggplot(mapping = aes(x=tab_recov_prob1[,2],y=(tab_recov_prob1[,1]),group =tab_recov_prob1[,3] ))+geom_point(aes(color = tab_recov_prob1[,3]) )+ geom_hline(yintercept = 1, color = "grey", linetype =2)  + geom_line(aes(color = tab_recov_prob1[,3]) )+labs(x=TeX("$Lp/d$"), y = "Empirical Coverage Probability",color = TeX("$d$"))+theme_bw()+theme(text=element_text(family="Times", size=12)) 
@@ -1334,7 +1334,7 @@ er_pca_2000 <- mean(err_rate)
 runtime_pca_2000 <- mean(runtime_ls)
 
 
-#### Tables of results for plotting Figure 6
+#### Tables of results for plotting Figure S2
 err_rate_tab <- rbind(err_rate_tab_500,err_rate_tab_1000, err_rate_tab_2000)
 err_rate_tab <- data.frame(err_rate_tab)
 err_rate_tab$X3<- as.factor(err_rate_tab$X3 )
@@ -1349,7 +1349,7 @@ runtime_tab$X3<- as.factor(runtime_tab$X3 )
 tab_recov_prob <- data.frame(tab_recov_prob)
 tab_recov_prob$X3<- as.factor(tab_recov_prob$X3 )
 
-#### Plotting Figure 6
+#### Plotting Figure S2
 library(latex2exp)
 p<-ggplot(mapping = aes(x=tab_recov_prob[,2],y=(tab_recov_prob[,1]),group =tab_recov_prob[,3] ))+geom_point(aes(color = tab_recov_prob[,3]) )+ geom_hline(yintercept = 0.95, color = "grey", linetype =2)  + geom_line(aes(color = tab_recov_prob[,3]) )+labs(x=TeX("$Lp/d$"), y = "Empirical Coverage Probability",color = TeX("$d$"))+theme_bw()+theme(text=element_text(family="Times", size=12)) 
 p1<-ggplot(mapping = aes(x=err_rate_tab[,2],y=(err_rate_tab[,1]),group =err_rate_tab[,3] ))+geom_point(aes(color = err_rate_tab[,3]) ) + geom_hline(yintercept = er_pca_500, color = "grey", linetype =2) +  geom_hline(yintercept = er_pca_1000, color = "grey", linetype =2)  +  geom_hline(yintercept = er_pca_2000, color = "grey", linetype =2)   + geom_line(aes(color = err_rate_tab[,3]) )+labs(x=TeX("$Lp/d$"), y = "Error Rate",color = TeX("$d$"))+theme_bw()+theme(text=element_text(family="Times", size=12)) 
@@ -1357,7 +1357,7 @@ p2<-ggplot(mapping = aes(x=runtime_tab[,2],y=(runtime_tab[,1]),group =runtime_ta
 ```
 ```{r}
 
-####### QQ plots in Figure 6
+####### QQ plots in Figure S2
 d= 2000
 K =3
 set.seed(154)
