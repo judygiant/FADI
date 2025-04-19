@@ -56,6 +56,18 @@ The following scripts further apply FADI to perform inferential analysis on the 
 - `multiple_testing_1000g.Rmd`: Performs multiple testing for inferring subject populations based on the estimated PCs. This script first executes **Step 3** of FADI by aggregating sketching results to form the final FADI estimator, and then performs membership testing using the FADI PC estimators. The full inferential procedure is described in Supplement D of the paper  
   *"Dimension Reduction for Large-Scale Federated Data: Statistical Rate and Asymptotic Inference."*
 
+### Results Collection Codes
+
+- `table_2_spiked_cov.R`: Generates the comparison results in **Table 3**, evaluating the performance of FADI against traditional PCA and the distributed PCA method proposed by Fan et al.  
+  - Input arguments:  
+    - `d`: Data dimension  
+    - `m`: Number of distributed data splits  
+    - `mci`: Index for Monte Carlo replication  
+    - `p`: Sketching dimension  
+
+- `figures_tables.Rmd`: Aggregates simulation outputs and generates all remaining figures presented in **Section 5** and **Appendices B.1–B.2** of the paper.
+
+
 ## Data
 The `Data` folder contains supplementary files used in the inferential analysis of the 1000 Genomes dataset:
 
