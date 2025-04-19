@@ -1,18 +1,15 @@
 args=(commandArgs(TRUE))
-##args=c(omega_l)
-## m = 100, L = 80, p = 50 
-
-l <- as.numeric(args[1])
-p <- as.numeric(args[2])
-
+l <- as.numeric(args[1]) ### index for parallel sketching
+p <- as.numeric(args[2]) ### sketching dimension for FADI
 d <- 2504
 N <- 168047
-mu= (d/(N*p)^{.5}*log(d))^{0.75}/12
+mu= (d/(N*p)^{.5}*log(d))^{0.75}/12 #### treshold parameter for estimating the rank K (see Section 3.5 of paper)
+library(here)
 ###### Step 2 aggregating sketches across distributed splits
 Yt <- 0 
 rt <- c()
 for (i in 1:100) {
-  fname <- paste(c("/ncf/xlin_covid/Users/sshen/fast_pca/real_data/results_",c(i,l,50),".RData"),collapse = '_')
+  fname <- paste(c(here("1000g_est_Results","results_"),c(i,l,50),".RData"),collapse = '_')
   load(fname)
   Yt <- Yt+Y
   rt <- c(rt, runtime)
@@ -42,5 +39,8 @@ while (!flag) {
 }
 kl<-k-2
 
-fname<-paste(c("/ncf/xlin_covid/Users/sshen/fast_pca/real_data/results_collect1",args,".RData"),collapse = '_')
-save(vk_hat,rt,kl, runtime,file=fname)
+fname<-paste(c(here("1000g_est_Results","results_collect1"),args,".RData"),collapse = '_')
+### vk_hat: top K eigenspace estimate by parallel sketching l
+### rt: total runtime
+### kl: rank estimate by parallel sketching l
+save(vk_hat,rt,kl,file=fname)

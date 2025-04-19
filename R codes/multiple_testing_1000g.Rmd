@@ -2,9 +2,13 @@
 title: "Untitled"
 output: html_document
 ---
+```{r setup, include=FALSE}
+library(here)
+```
 Define power sketching method for parallel results aggregation:
 ```{r}
 fast_pca_final<-function(y_ls,p0,qq){
+  ###y_ls is the list of parallel sketching results, p0 is the sketching dimension, qq is the number of iteration for the power method
   d <- dim(y_ls[[1]])[1]
   omega<-matrix(rnorm(d*p0),d,p0)
   
@@ -21,7 +25,7 @@ fast_pca_final<-function(y_ls,p0,qq){
   }
   
   
-  Q<-svd(Yt)$u
+  Q<-svd(Yt)$u ## output final PC estimate by power method
   return('u'=Q)
 }
 
@@ -33,37 +37,39 @@ y_ls <- list()
 k_ls <- c()
 rt_ls <- c()
 ts <- Sys.time()
+####Aggregating parallel PC results
 for (mc in 1:1000){
-  fname<-paste(c("/ncf/xlin_covid/Users/sshen/dissertation_1.5/real_data/results/results_",mc,".RData"),collapse = '_')
+  fname<-paste(c(here("Results","results_"),mc,".RData"),collapse = '_')
   load(fname)
   y_ls <- append(y_ls, list(vkl))
   rt_ls <- c(rt_ls,rt)
   k_ls <- c(k_ls, kl)
 }
+####Computing final PC by power method
 vtild <- fast_pca_final(y_ls, 50, 3)
 vtild <- vtild[,1:4]
 te <- Sys.time()
 kh <- round(median(k_ls))
-te-ts + max(rt_ls) #runtime for 
+te-ts + max(rt_ls) #runtime for Step 3 of FADI
 ```
 
 
 ```{r}
-
 K = kh
 p = 50
-load("/ncf/xlin_covid/Users/sshen/dissertation_1.5/real_data/1000g_sbm95.RData")
-info <- read.delim("/n/home_fasse/shutingshen/ncf_user/fast_pca/1KG_TRACE_pca.txt", sep = " ")
-
+#####Loading graph generated from the 1000 Genome Data
+load(here("Data", "1000g_sbm95.RData"))
+####Loading the population labels
+info <- read.delim(here("Data", "1KG_TRACE_pca.txt"), sep = " ")
 ll <- order(info$Population.2)
 pop_vec <- info$Population.2[ll]
-
 loc_pure <- pop_vec %in% c("AFR", "EAS", "EUR", "SAS")
 pop_pure <- pop_vec[loc_pure]
 pop_pure <- droplevels(pop_pure)
-Mh <- sbm95[loc_pure, loc_pure]
-d = dim(Mh)[1]
+Mh <- sbm95[loc_pure, loc_pure]  #Obtaining hat{M}, including only four super populations: AFR, EAS, EUR and SAS
 
+#####Refining Graph Estimation using FADI estimator
+d = dim(Mh)[1]
 Mtild <- vtild%*%(t(vtild)%*%Mh%*%vtild)%*%t(vtild)
 lmtild <- (t(vtild)%*%Mh%*%vtild)
 Mtild[Mtild <0] <- 0 ####correction for entries with negative values
@@ -74,6 +80,7 @@ te-ts
 Pairwise testing on whether two subjects i and j belong to the same super population:
 
 ```{r}
+###### Function computing the pseudoinverse
 bad_solve <- function(A){
   svdA <- svd(A)
   inv <- svdA$u%*%diag((svdA$d)^{-1})%*%t(svdA$v)
@@ -81,11 +88,9 @@ bad_solve <- function(A){
 }
 ```
 
-
 ```{r}
 nodes_loc <- c(3,5,6,7,662,664,665,666,1166,1168,1169,1171,1576:1579)#preselected subjects
-nodes_pop <- pop_pure[nodes_loc]
-
+nodes_pop <- pop_pure[nodes_loc] ####subsetting subjects to be tested
 p_value_mat <- matrix(NA, 16,16)
 p_value_mat1 <- matrix(NA, 16,16)
 ts <-Sys.time()
@@ -95,6 +100,7 @@ vkh <- svdM$u[,1:4]
 
 runtime_svd <- te - ts
 
+#######Performing SVD using the traditional PCA
 Mkh <- vkh%*%(t(vkh)%*%Mh%*%vkh)%*%t(vkh)
 W0 <- Mh - Mkh
 lmk <- diag(svdM$d[1:4])
@@ -108,23 +114,21 @@ lmkh <- diag(lmkh)
 
 W0 <- Mh - vkh%*%lmkh%*%t(vkh)
 
-
+##### Performing pairwise inference 
 for(ii in 1:length(nodes_loc)){
   for(ij in 1:length(nodes_loc)){
     i <- nodes_loc[ii]
     j <- nodes_loc[ij]
-    sig_i <- solve(lmtild)%*%t(vtild)%*%( (  (Mtild[i,])*(1-Mtild[i,])  )  *vtild  )%*%solve(lmtild)
     
-    sig_j <- solve(lmtild)%*%t(vtild)%*%( (    (Mtild[j,])*(1-Mtild[j,])   ) *vtild  )%*%solve(lmtild)
-    
-    
-    chiq_i_j <- (vtild[i,] - vtild[j,])%*%solve(sig_i + sig_j)%*%(vtild[i,] - vtild[j,])
+    ####### Inference by FADI estimator
+    sig_i <- solve(lmtild)%*%t(vtild)%*%( (  (Mtild[i,])*(1-Mtild[i,])  )  *vtild  )%*%solve(lmtild) ### Estimating Covariance matrix for profile estimator of subject i
+    sig_j <- solve(lmtild)%*%t(vtild)%*%( (    (Mtild[j,])*(1-Mtild[j,])   ) *vtild  )%*%solve(lmtild) ### Estimating Covariance matrix for profile estimator of subject j
+    chiq_i_j <- (vtild[i,] - vtild[j,])%*%solve(sig_i + sig_j)%*%(vtild[i,] - vtild[j,]) ####chi square statistics for profile difference
     p_value_mat[ii,ij] <- 1-pchisq(chiq_i_j,df = 4)
+    
+    ##### Inference by traditional PCA
     sig_i <- solve(lmk)%*%t(vkh)%*%( (    (W0[i,])^2   ) *vkh  )%*%solve(lmk)
-    
     sig_j <- solve(lmk)%*%t(vkh)%*%( (    (W0[j,])^2   ) *vkh  )%*%solve(lmk)
-    
-    
     chiq_i_j <- (vkh[i,] - vkh[j,])%*%bad_solve(sig_i + sig_j)%*%(vkh[i,] - vkh[j,])
     p_value_mat1[ii,ij] <- 1-pchisq(chiq_i_j,df = 4)
   }

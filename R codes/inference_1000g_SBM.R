@@ -1,28 +1,34 @@
+######inputting arguments from the shell script
 args=(commandArgs(TRUE))
 mc <- as.numeric(args[1])
 K = 4
 p = 50
 m = 10
-load("/ncf/xlin_covid/Users/sshen/dissertation_1.5/real_data/1000g_sbm95.RData")
-info <- read.delim("/n/home_fasse/shutingshen/ncf_user/fast_pca/1KG_TRACE_pca.txt", sep = " ")
-
+library(here)
+#####Loading graph generated from the 1000 Genome Data
+load(here("Data", "1000g_sbm95.RData"))
+####Loading the population labels
+info <- read.delim(here("Data", "1KG_TRACE_pca.txt"), sep = " ")
 ll <- order(info$Population.2)
 pop_vec <- info$Population.2[ll]
-
 loc_pure <- pop_vec %in% c("AFR", "EAS", "EUR", "SAS")
+Mh <- sbm95[loc_pure, loc_pure] #Obtaining hat{M}, including only four super populations: AFR, EAS, EUR and SAS
 
-Mh <- sbm95[loc_pure, loc_pure]
-d = dim(Mh)[1]
-dj <- d/m
+d = dim(Mh)[1] #dimension of hat{M}
+dj <- ceiling(d/m) #the dimension of data split on each machine
+
+#####Estimating parameters from observed data matrix
 thetah = sum(Mh)/d^2/2
 mu = d*log(d)*sqrt(thetah/p)/12
 
+#####Computing the local sketchings on each machine
 t_ls <- c()
 Yt <- 0
 for (j in 1:m){
-  loc <- (dj*(j-1)+1):(dj*j)
+  loc <- (dj*(j-1)+1):(min(dj*j,d)) ###data index corresponding to each machine
+  djj <- length(loc)
   ts <- Sys.time()
-  omega <- matrix(rnorm(dj*p),dj,p)
+  omega <- matrix(rnorm(djj*p),djj,p)
   Ytj <- Mh[,loc]%*%omega
   Yt <- Yt + Ytj
   te <- Sys.time()
@@ -30,10 +36,11 @@ for (j in 1:m){
 }
 
 ts <- Sys.time()
-svdY <- svd(Yt/sqrt(p))
+svdY <- svd(Yt/sqrt(p)) ##### SVD for each parallel sketching
 te <- Sys.time()
-rt <- difftime(te,ts,units = "secs") + max(t_ls)
-vkl <- svdY$u[,1:K] 
+rt <- difftime(te,ts,units = "secs") + max(t_ls) ####computing the runtime for step 1 and step 2 of FADI
+vkl <- svdY$u[,1:K] ##### Extract the top K left singular vectors for each parallel sketching
+
 #####estimate K
 dd <- svdY$d
 diff <- dd-dd[p]
@@ -45,8 +52,8 @@ while (!flag) {
 }
 kl<-k-2
 
-
-
-fname<-paste(c("/ncf/xlin_covid/Users/sshen/dissertation_1.5/real_data/results/results_",args,".RData"),collapse = '_')
+#####Saving data
+dir.create(here("1000g_inf_Results"))
+fname<-paste(c(here("1000g_inf_Results","results_"),args,".RData"),collapse = '_')
 
 save(vkl,kl,rt, file = fname)
