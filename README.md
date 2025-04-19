@@ -3,7 +3,20 @@
 ## R codes
 The R codes folder contains the R scripts for simulation studies, and application of FADI to the 1000 Genomes data (estimation of principal eigenspace and inferential analysis under the degree-corrected mixed membership model). 
 
-R scripts example_spiked_covariance.R, example_GMM.R, example_DCMM.R, and example_missing_matrix.R contain the simulation codes for implementing FADI under the spiked covariance model, the Gaussian mixture models (GMM), the degree-corrected mixed membership (DCMM) model, and the incomplete matrix inference model respectively. Input parameters are d-dimension of data, mc-index of independent Monte Carlo simulations, and rt-ratio of $Lp/d$.
+R scripts example_spiked_covariance.R, example_GMM.R, example_DCMM.R, and example_missing_matrix.R contain the simulation codes for implementing FADI under the spiked covariance model, the Gaussian mixture models (GMM), the degree-corrected mixed membership (DCMM) model, and the incomplete matrix inference model respectively. Input parameters are d-dimension of data, mc-index of independent Monte Carlo simulations, and rt-ratio of $Lp/d$. These arguments should be specified when invoking the script, for example via a shell script. Below is a sample SLURM batch script:
+
+#!/bin/bash
+#SBATCH --array=1-2
+#SBATCH -c 1
+#SBATCH -N 1
+#SBATCH -t 0-1:00
+#SBATCH -p test
+#SBATCH --mem=10G               
+#SBATCH -o %A_%a.out
+#SBATCH -e %A_%a.err
+#SBATCH --mail-type=NONE
+module load gcc R #Load R module
+R CMD BATCH --quiet --no-restore --no-save "--args $SLURM_ARRAY_TASK_ID" inference_1000g_SBM.R inference_1000g_SBM_${SLURM_ARRAY_TASK_ID}.out  
 
 R scripts 1000g_estimation_layer_1.R and 1000g_estimation_layer_2.R contain the codes for applying FADI for estimating the principal eigenspace of the 1000 Genomes data. 1000g_estimation_layer_1.R implements Step 1 of FADI, with input parameters i-index for distributed data split, l-index for parallel sketching, and p-dimension of fast sketching. 1000g_estimation_layer_2.R implements step 2 of FADI, with input parameters l-index for parallel sketching, and p-dimension of fast sketching.
 
