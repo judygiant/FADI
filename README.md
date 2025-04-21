@@ -33,6 +33,14 @@ These arguments should be specified when invoking the script, for example via a 
 module load gcc R  # Load R module
 R CMD BATCH --quiet --no-restore --no-save "--args 1000 $SLURM_ARRAY_TASK_ID 1" example_GMM.R example_GMM_${SLURM_ARRAY_TASK_ID}.out
 ```
+To run the code locally, one can comment out the first line of the R script and specify the input values directly within the script, for example:
+```
+#args=(commandArgs(TRUE))
+
+d <- 1000  #### Data dimension/number of variables
+mc <- 1 #### Monte Carlo index
+rt <- 1.5 #### rt = L*p / d
+```
 ### 1000 Genomes Application
 
 The following scripts apply FADI to the 1000 Genomes data to estimate the principal eigenspace across two layers:
